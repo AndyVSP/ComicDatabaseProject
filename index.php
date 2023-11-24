@@ -72,8 +72,17 @@ $continuity_names = $stmt5->fetchAll(PDO::FETCH_COLUMN);
 
 //Get list of issues 
 
-            
-    ?>		
+$get_issues = "SELECT issue.id, issue.number, is_anthology, has_backup, publication_year, publication_date, cover_date, series.title FROM 
+(issue INNER JOIN series ON series_id = series.id)";
+
+
+$stmt6 = $conn->query($get_issues);
+$issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);         
+
+?>	
+    
+
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -305,6 +314,7 @@ $continuity_names = $stmt5->fetchAll(PDO::FETCH_COLUMN);
             <div class = "row"></div>
         <!-- ISSUES COUNT RESULT DISPLAY END-->
           <!-- ISSUES DISPLAY START-->
+          <!-- ISSUES DISPLAY HEADER START-->
         <br>
             <div class = "row">
                 <div class = "col-2"></div>
@@ -321,13 +331,150 @@ $continuity_names = $stmt5->fetchAll(PDO::FETCH_COLUMN);
                             <?php foreach ($continuity_names as $continuity): ?>
                             <!-- Changing the color of the tag if it is active, and making it lead back to the unflitered gallery if clicked again -->
                             <?php if ($continuity == $selected_continuity): ?>
-                                <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 180px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><?php echo $continuity?></a></li>
+                                <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 181px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><?php echo $continuity?></a></li>
                             <!-- if tag is not selected then  clicking the tag just applies the filter to the gallery by adding the tag to the url -->
                             <?php else: ?>
-                                <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 180px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
+                                <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 181px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
                             <?php endif; ?>
                         <?php endforeach; ?>
-                
+                        </ul>
+                    </div>
+                <!-- ISSUES DISPLAY HEADER START-->
+                <!-- ISSUES DISPLAY TABLE START-->
+                <div class = "container-fluid" >
+                <table class="table table-hover" style="overflow: auto; border-left: 1px solid black; border-right: 1px solid black;">
+                        <thead >
+                            <tr style= "background-color: #E6F1FE">
+                            <th scope="col">  </th>
+                            <th scope="col">Series</th>
+                            <th scope="col"> Issue </th>
+                            <th scope="col">  </th>
+                            <th scope="col">  </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                        <?php 
+                        $i = 0; 
+
+                        foreach($issues_info as $issue_info): 
+                            $issue_id = $issue_info["id"];
+                            $i++;
+                            $get_stories_info = "SELECT DISTINCT issue.id, story.id,
+                                story.title, continuity.name AS continuity, crossover_event.name AS c_event FROM ((((issue 
+                                INNER JOIN has_story ON has_story.issue_id = issue.id) 
+                                INNER JOIN story ON has_story.story_id = story.id) 
+                                LEFT JOIN continuity ON story.CONTINUITY_id = continuity.id)
+                                LEFT JOIN crossover_event ON story.CROSSOVER_EVENT_id = crossover_event.id)
+                                WHERE issue.id =".$issue_id."";
+                               
+                                $stmt8 = $conn->query($get_stories_info);
+                                $stories_info = $stmt8->fetchAll(PDO::FETCH_ASSOC); 
+                                ?>
+                            <th style = "font-family: Karma, sans-serif;"scope="row"><?php echo $i;?></th>
+                            <td style = "font-family: Karma, sans-serif;"><?php echo $issue_info["title"]. " (" .$issue_info["publication_year"]. ")";?></td>
+                            <td style = "font-family: Karma, sans-serif;"><?php echo " # " .$issue_info["number"];?></td>
+                            <td style="width: 50%"></td>
+                            <td>
+                                <button style="font-family: Roboto, sans-serif;"class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#<?php echo $i?>" aria-expanded="false" aria-controls="collapseExample">
+                                    Expand
+                                </button>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td colspan = "5">
+                            <div class="collapse" id="<?php echo $i?>">
+                                <div class="card card-body"  style = "font-family: Karma, sans-serif;">
+                                    <div class = "row">
+                                        <div class = "col-1">
+                                            <h5><b>Series: </b></h5>
+                                        </div>
+                                        <div class = "col-3">
+                                            <p style="font-size: 18px;"> <?php echo $issue_info["title"]. " (" .$issue_info["publication_year"]. ")";?></p>
+                                        </div>
+                                    </div>
+                                    <div class ="row">
+                                        <div class="col-2">
+                                            <h5><b>Stories</b></h5>
+                                        </div>
+                                        <div class="col-2">
+                                            <h5><b>Characters</b></h5>
+                                        </div>
+                                        <div class="col-2">
+                                            <h5><b>Team</b></h5>
+                                        </div>
+                                        <div class="col-2">
+                                            <h5><b>Continuity</b></h5>
+                                        </div>
+                                        <div class="col-2">
+                                            <h5><b>Event</b></h5>
+                                        </div>
+                                        <div class="col-2">
+                                            <h5><b>Contributors</b></h5>
+                                        </div>
+                                    </div>
+                                    <?php foreach ($stories_info as $story_info):
+                                        $story_id = $story_info["id"];
+                                        $get_characters_info = "SELECT dc_character.first_name, dc_character.last_name, mantle.name AS mantle, team.name AS team FROM (((((features
+                                        INNER JOIN dc_character ON dc_character_id = dc_character.id)
+                                        LEFT JOIN has_mantle ON has_mantle_id = has_mantle.id)
+                                        LEFT JOIN mantle ON mantle_id = mantle.id)
+                                        LEFT JOIN in_team ON in_team_id = in_team.id)
+                                        LEFT JOIN team ON team_id = team.id)
+                                        WHERE story_id =".$story_id.""; 
+
+                                        $stmt9 = $conn->query($get_characters_info);
+                                        $characters_info = $stmt9->fetchAll(PDO::FETCH_ASSOC);
+                                          
+                                             
+                                             ?>
+                                        <div class="row">
+                                            <div class = "col-2">
+                                                <p style= "margin-left: 5px;" ><?php echo $story_info["title"];?> </p>
+                                            </div>
+                                            <div class = "col-2">
+                                                <?php foreach ($characters_info as $character_info): ?>
+                                                <div class = "row" style = "height: 55px;">
+                                                    <p><?php echo $character_info["first_name"]. " ".$character_info["last_name"];
+                                                    if($character_info["mantle"]){
+                                                        echo " (As " .$character_info["mantle"]. ")";} 
+                                                   
+                                                    ?></p>
+                                                </div>
+
+                                                <?php endforeach;?>
+                                            </div>
+                                            <div class="col-2">
+                                            <?php foreach ($characters_info as $character_info): ?>
+                                                <div class = "row" style = "height: 55px;">
+                                                    <p style= "margin-left: 5px;"><?php echo $character_info["team"]?></p>
+                                                </div>
+                                            <?php endforeach;?>
+                                            </div>
+                                            <div class="col-2">
+                                                <p style= "margin-left: 5px;"><?php echo $story_info["continuity"];?></p>
+                                            </div>
+                                            <div class="col-2">
+                                                <p style= "margin-left: 5px;"><?php echo $story_info["c_event"]?></p>
+                                            </div>
+                                            <div class="col-2">
+                                                <p style= "margin-left: 5px;"></p>
+                                            </div>
+                                       
+                                           
+                                        </div>
+                                    <?php endforeach;?>
+                                </div>
+                                
+                            </div>
+                            </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tfoot style= "background-color: #E6F1FE">
+                            <td colspan="5"></td>
+                        </tfoot>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
