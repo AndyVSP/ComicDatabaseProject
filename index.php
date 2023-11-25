@@ -20,15 +20,25 @@ session_start();
 
 $selected_continuity = "";
 $selected_continuity = $_GET['continuity'] ?? '';
-            
-///clear session variables when clear button is pressed//
 
-if(isset($_POST["ro_clear"])){ 
-                $_SESSION["ro_continuity_selected"] = "";
-                $_SESSION["ro_event_selected"] = "";
-                $_SESSION["ro_team_selected"] = "";
-                $_SESSION["ro_char_selected"] = "";
-            }
+
+//Get list of issues
+
+if(!empty($selected_continuity)){
+    $get_issues = "SELECT DISTINCT issue.id, issue.number,  is_anthology, has_backup, publication_year, publication_date, cover_date, series.title, continuity.name FROM ((((continuity
+    INNER JOIN story ON continuity.id = continuity_id)
+    INNER JOIN has_story ON story.id = story_id)
+    INNER JOIN issue ON issue_id = issue.id)
+    INNER JOIN series ON series_id = series.id)
+    WHERE continuity.name = '$selected_continuity'
+    ORDER BY publication_date";
+    
+ 
+} else{$get_issues = "SELECT issue.id, issue.number, is_anthology, has_backup, publication_year, publication_date, cover_date, series.title FROM 
+(issue INNER JOIN series ON series_id = series.id) ORDER BY publication_date";}
+
+$stmt6 = $conn->query($get_issues);
+$issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
 
 
 //Get list of characters with reading orders
@@ -69,19 +79,18 @@ $get_continuities = "SELECT name FROM  continuity";
 $stmt5 = $conn->query($get_continuities);
 $continuity_names = $stmt5->fetchAll(PDO::FETCH_COLUMN); 
 
+///clear session variables when clear button is pressed//
 
-//Get list of issues 
-
-$get_issues = "SELECT issue.id, issue.number, is_anthology, has_backup, publication_year, publication_date, cover_date, series.title FROM 
-(issue INNER JOIN series ON series_id = series.id)";
-
-
-$stmt6 = $conn->query($get_issues);
-$issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);         
+if(isset($_POST["ro_clear"])){ 
+    $_SESSION["ro_continuity_selected"] = "";
+    $_SESSION["ro_event_selected"] = "";
+    $_SESSION["ro_team_selected"] = "";
+    $_SESSION["ro_char_selected"] = "";
+}
 
 ?>	
     
-
+   
 
 <!doctype html>
 <html lang="en">
@@ -95,7 +104,6 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
         <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto'>
         <link href="https://fonts.googleapis.com/css2?family=Karma:wght@300&family=Sigmar+One&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-        <link href="/myStyle.css" type="text/css" rel="stylesheet">
     </head>
     <body>
         <!-- HEADER START-->
@@ -302,6 +310,9 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
                                 <div class = "container-fluid" style="display:flex;">
                                     <input type="submit" name = "ro_clear" value="Clear" class = "btn btn-secondary" style="  width: 150px; margin: 0 0 0 100px; font-family: Roboto, sans-serif;">
                                     <input type="submit" name = "ro_submit" value="Submit" class = "btn btn-secondary" style=" width: 100px; margin: 0 0 0 50px; font-family: Roboto, sans-serif;">
+                                    <?php 
+                                        
+                                    ?>
                                 </div>
                             </form>
                         </div>
@@ -317,33 +328,45 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
           <!-- ISSUES DISPLAY HEADER START-->
         <br>
             <div class = "row">
-                <div class = "col-2"></div>
+                <div class = "col-2">
+                    <div class = "row" style = "text-align: center; font-family: Roboto, sans-serif; font-size: 14px;"><h3><b>About</b></h3></div>
+                    <div class = "row" style = "margin-left: 10px; text-align: left; font-family: Karma, sans-serif; font-size: 12px;">
+                        <p>This databse pulls issues from several reading orders and compiles them into a single list.
+                        To use it, simply select the reading orders you are interested in form the menu above and hit submit.
+                        Character, team, and event reading orders compile the recommended reading for that specific character, team or event. 
+                        Continuity reading orders compile the best and most essential comics from each era of DC across the enitre DC Universe.
+                        You can then use the tabs at the top of the table to only view issues that have stories that take place in a particular continuity.
+                        You can start reading from any continuity section. They are ordered chronologially, so if you only want to cath up with the newest comics start from comics under Infinite Frontier and Beyond.
+                        For a more complete reading experience start at Pre-Crisis. 
+                        </p>
+                    </div>
+                </div>
                 <div class = "col-10">                        
                     <div class = "container-fluid">
                         <ul class="nav nav-tabs">
                             <li class="nav-item">
                             <?php if ($selected_continuity==""): ?>
-                                <a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 170px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;">All</a>
+                                <a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 173px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;">All</a>
                             <?php else: ?>
-                                <a class="nav-link" href="?" style= "justify-content: center; height: 65px; width: 170px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;">All</a>
+                                <a class="nav-link" href="?" style= "justify-content: center; height: 65px; width: 173px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;">All</a>
                             <?php endif; ?>
                             </li>
                             <?php foreach ($continuity_names as $continuity): ?>
                             <!-- Changing the color of the tag if it is active, and making it lead back to the unflitered gallery if clicked again -->
                             <?php if ($continuity == $selected_continuity): ?>
-                                <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 181px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><?php echo $continuity?></a></li>
+                                <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 180px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><?php echo $continuity?></a></li>
                             <!-- if tag is not selected then  clicking the tag just applies the filter to the gallery by adding the tag to the url -->
                             <?php else: ?>
-                                <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 181px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
+                                <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 180px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
                             <?php endif; ?>
                         <?php endforeach; ?>
                         </ul>
                     </div>
-                <!-- ISSUES DISPLAY HEADER START-->
+                <!-- ISSUES DISPLAY HEADER END-->
                 <!-- ISSUES DISPLAY TABLE START-->
                 <div class = "container-fluid" >
                 <table class="table table-hover" style="overflow: auto; border-left: 1px solid black; border-right: 1px solid black;">
-                        <thead >
+                        <thead style = "border: 1px solid black;">
                             <tr style= "background-color: #E6F1FE">
                             <th scope="col">  </th>
                             <th scope="col">Series</th>
@@ -370,11 +393,27 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
                                
                                 $stmt8 = $conn->query($get_stories_info);
                                 $stories_info = $stmt8->fetchAll(PDO::FETCH_ASSOC); 
+
+                            $get_tags_info = "SELECT issue.id, tag.id AS idtag, tag.name, tag.type FROM ((issue
+                            LEFT JOIN has_tag ON issue_id = issue.id)
+                            LEFT JOIN tag ON tag_id = tag.id)
+                            WHERE issue_id = ".$issue_id."";
+
+                                $stmt7 = $conn->query($get_tags_info);
+                                $tags_info = $stmt7->fetchAll(PDO::FETCH_ASSOC); 
+                            
+            
                                 ?>
                             <th style = "font-family: Karma, sans-serif;"scope="row"><?php echo $i;?></th>
-                            <td style = "font-family: Karma, sans-serif;"><?php echo $issue_info["title"]. " (" .$issue_info["publication_year"]. ")";?></td>
-                            <td style = "font-family: Karma, sans-serif;"><?php echo " # " .$issue_info["number"];?></td>
-                            <td style="width: 50%"></td>
+                            <td style = "font-family: Karma, sans-serif;"><b><?php echo $issue_info["title"]. " (" .$issue_info["publication_year"]. ")";?></b></td>
+                            <td style = "font-family: Karma, sans-serif;"><b><?php echo " # " .$issue_info["number"];?></b></td>
+                            <td style="width: 50%">
+                                <b>Tagged: </b> 
+                                <?php foreach ($tags_info as $key => $tag) {
+                                    echo $tag["name"];
+                                    if ($key < count($tags_info) - 1) { echo ', '; } 
+                                };?>
+                            </td>
                             <td>
                                 <button style="font-family: Roboto, sans-serif;"class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#<?php echo $i?>" aria-expanded="false" aria-controls="collapseExample">
                                     Expand
@@ -392,27 +431,34 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
                                         <div class = "col-3">
                                             <p style="font-size: 18px;"> <?php echo $issue_info["title"]. " (" .$issue_info["publication_year"]. ")";?></p>
                                         </div>
+                                         <div class = "col-2">
+                                            <h5 style="font-size: 16px;"><b>Release Date: </b></h5>
+                                        </div>
+                                        <div class = "col-2">
+                                            <p > <?php echo $issue_info["publication_date"];?></p>
+                                        </div>  
                                     </div>
-                                    <div class ="row">
+                                    <div class ="row" style= "margin: 0 10px; border-bottom: 1px solid black; ">
                                         <div class="col-2">
-                                            <h5><b>Stories</b></h5>
+                                            <h5 style="font-size: 17px;"><b>Stories</b></h5>
                                         </div>
                                         <div class="col-2">
-                                            <h5><b>Characters</b></h5>
+                                            <h5 style="font-size: 17px;"><b>Characters</b></h5>
                                         </div>
                                         <div class="col-2">
-                                            <h5><b>Team</b></h5>
+                                            <h5 style="font-size: 17px;"><b>Team</b></h5>
                                         </div>
                                         <div class="col-2">
-                                            <h5><b>Continuity</b></h5>
+                                            <h5 style="font-size: 17px;"><b>Continuity</b></h5>
                                         </div>
                                         <div class="col-2">
-                                            <h5><b>Event</b></h5>
+                                            <h5 style="font-size: 17px;"><b>Event</b></h5>
                                         </div>
                                         <div class="col-2">
-                                            <h5><b>Contributors</b></h5>
+                                            <h5 style="font-size: 17px;"><b>Contributors</b></h5>
                                         </div>
                                     </div>
+                                    <br>
                                     <?php foreach ($stories_info as $story_info):
                                         $story_id = $story_info["id"];
                                         $get_characters_info = "SELECT dc_character.first_name, dc_character.last_name, mantle.name AS mantle, team.name AS team FROM (((((features
@@ -425,10 +471,19 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
 
                                         $stmt9 = $conn->query($get_characters_info);
                                         $characters_info = $stmt9->fetchAll(PDO::FETCH_ASSOC);
-                                          
+                                        
+                                        $get_contributors_info = "SELECT story_id, person.first_name, person.last_name, role.name AS c_role FROM (((story
+                                        INNER JOIN contributed_to ON story.id = story_id)
+                                        INNER JOIN person ON person_id = person.id)
+                                        INNER JOIN role ON role_id = role.id)
+                                        WHERE story.id = ".$story_id."
+                                        ORDER BY role.name" ; 
                                              
+                                        $stmt10 = $conn->query($get_contributors_info);
+                                        $contributors_info = $stmt10->fetchAll(PDO::FETCH_ASSOC);
                                              ?>
-                                        <div class="row">
+                                        
+                                        <div class="row" style= "border-bottom: 1px solid black; margin: 10px;">
                                             <div class = "col-2">
                                                 <p style= "margin-left: 5px;" ><?php echo $story_info["title"];?> </p>
                                             </div>
@@ -457,27 +512,94 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="col-2">
                                                 <p style= "margin-left: 5px;"><?php echo $story_info["c_event"]?></p>
                                             </div>
-                                            <div class="col-2">
-                                                <p style= "margin-left: 5px;"></p>
-                                            </div>
-                                       
-                                           
+                                            <div class = "col-2">
+                                                <?php foreach ($contributors_info as $contributor_info): ?>
+                                                <div class = "row"s>
+                                                    <p><?php echo $contributor_info["first_name"]. " ".$contributor_info["last_name"];
+                                                    if($contributor_info["c_role"]){
+                                                        echo " (" .$contributor_info["c_role"]. ")";} 
+                                                   
+                                                    ?></p>
+                                                </div>
+                                                <?php endforeach;?>
+                                            </div> 
                                         </div>
                                     <?php endforeach;?>
+                                    <div class ="row">
+                                        <div class = "col-2">
+                                            <h5><b>Tagged: </b></h5>
+                                        </div>
+                                        <div class = "col-10">
+                                            <?php
+                                             foreach ($tags_info as $key => $tag) {
+                                                    $tag_id =$tag["idtag"];
+                                                    echo "<b>".$tag["name"].": </b>";
+                                                    if($tag["type"] == "Character") {
+                                                        $get_tag_char_info = "SELECT dc_character_tag.tag_id, dc_character.first_name as Name, dc_character.last_name AS L_Name FROM (((issue
+                                                        LEFT JOIN has_tag ON issue_id = issue.id)
+                                                        INNER JOIN dc_character_tag ON dc_character_tag_id = dc_character_tag.id)
+                                                        INNER JOIN dc_character ON dc_character_id = dc_character.id)
+                                                        WHERE issue.id = ".$issue_id."
+                                                        AND dc_character_tag.tag_id = ".$tag_id."" ;
+                                                        
+                                                        $stmt11 = $conn->query($get_tag_char_info);
+                                                        $tag_char_info = $stmt11->fetchAll(PDO::FETCH_ASSOC);
+                                                       foreach ($tag_char_info as $tag_char) {
+                                                        echo " (". $tag_char["Name"]. " " . $tag_char["L_Name"]. ")";}
+                                                    };
+                                                    if ($tag["type"] == "Team") {
+                                                        $get_tag_team_info = "SELECT team_tag.tag_id, team.name FROM (((issue
+                                                        LEFT JOIN has_tag ON issue_id = issue.id)
+                                                        INNER JOIN team_tag ON team_tag_id = team_tag.id)
+                                                        INNER JOIN team ON team_id = team.id)
+                                                        WHERE issue.id = ".$issue_id."
+                                                        AND team_tag.tag_id = ".$tag_id."" ;
+
+                                                        $stmt12 = $conn->query($get_tag_team_info);
+                                                        $tag_team_info = $stmt12->fetchAll(PDO::FETCH_ASSOC);
+                                                        foreach ($tag_team_info as $tag_team) {
+                                                        echo " (". $tag_team["name"]. ")";}
+                                                 
+                                                   };
+
+                                                    if ($tag["type"] == "Relationship") {
+                                                        $get_tag_relationship_info = "SELECT relationship_tag.tag_id, dc_character.first_name, dc_character.last_name, char_tb.first_name AS name_2, char_tb.last_name AS last_name_2, relationship_type.type FROM ((((((issue
+                                                        INNER JOIN has_tag ON issue_id = issue.id)
+                                                        INNER JOIN relationship_tag ON relationship_tag_id = relationship_tag.id)
+                                                        INNER JOIN relationship ON relationship_id = relationship.id)                                                                                    
+                                                        INNER JOIN dc_character ON dc_character_id_1 = dc_character.id)
+                                                        LEFT JOIN dc_character AS char_tb ON dc_character_id_2 = char_tb.id)
+                                                        INNER JOIN relationship_type ON relationship_type_id = relationship_type.id)
+                                                        WHERE issue.id = ".$issue_id."
+                                                        AND relationship_tag.tag_id = ".$tag_id."" ;
+                                                        
+                                                        $stmt13 = $conn->query($get_tag_relationship_info);
+                                                        $tag_relationship_info = $stmt13->fetchAll(PDO::FETCH_ASSOC);
+                                                        foreach ($tag_relationship_info as $tag_relationship) {
+                                                        echo " (" .$tag_relationship["first_name"]. " ".$tag_relationship["last_name"]. " & " .$tag_relationship["name_2"]. " ".$tag_relationship["last_name_2"]. " [" .$tag_relationship["type"]. "] )";}
+                                                    }
+                                                
+                                                     if ($key < count($tags_info) - 1) { echo ', '; } 
+                                                  
+                                             };
+                                            ?>
+                                        </div>
+                                    </div>
                                 </div>
-                                
+                                  
                             </div>
                             </td>
                             </tr>
                         <?php endforeach; ?>
-                        <tfoot style= "background-color: #E6F1FE">
-                            <td colspan="5"></td>
+                        <tfoot style= "border: 1px solid black; background-color: #E6F1FE;">
+                            <td colspan="5" style= "border: 1px solid black;"></td>
                         </tfoot>
                         </tbody>
                     </table>
-                </div>
+                <!-- ISSUES DISPLAY TABLE END-->
             </div>
         </div>
+        <nav id="header" class= "navbar" style = "background-color:#0476F2;"></nav>
          <!-- MAIN BODY END-->                               
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
     </body>
