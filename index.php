@@ -1,5 +1,8 @@
 
 <?php
+//Start session
+session_start();
+
 //Connect to database
     $server = 'localhost';
     $username = 'root';
@@ -13,38 +16,12 @@
         die( "Connection failed: " . $e->getMessage());
         }
 
-//Start session
-session_start();
-
-//Intialize variable
-
-$selected_continuity = "";
-$selected_continuity = $_GET['continuity'] ?? '';
-
-
-//Get list of issues
-
-if(!empty($selected_continuity)){
-    $get_issues = "SELECT DISTINCT issue.id, issue.number,  is_anthology, has_backup, publication_year, publication_date, cover_date, series.title, continuity.name FROM ((((continuity
-    INNER JOIN story ON continuity.id = continuity_id)
-    INNER JOIN has_story ON story.id = story_id)
-    INNER JOIN issue ON issue_id = issue.id)
-    INNER JOIN series ON series_id = series.id)
-    WHERE continuity.name = '$selected_continuity'
-    ORDER BY publication_date";
-    
- 
-} else{$get_issues = "SELECT issue.id, issue.number, is_anthology, has_backup, publication_year, publication_date, cover_date, series.title FROM 
-(issue INNER JOIN series ON series_id = series.id) ORDER BY publication_date";}
-
-$stmt6 = $conn->query($get_issues);
-$issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
-
 
 //Get list of characters with reading orders
     $get_ro_characters = "SELECT DISTINCT first_name, last_name FROM 
     (dc_character_reading_order INNER JOIN dc_character 
-    ON dc_character_id = dc_character.id)";
+    ON dc_character_id = dc_character.id)
+    ORDER by first_name";
  
     $stmt = $conn->query($get_ro_characters);
     $ro_character_names = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -52,7 +29,8 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
 //Get list of teams with reading orders
      $get_ro_teams = "SELECT DISTINCT name FROM 
      (team_reading_order INNER JOIN team 
-     ON team_id = team.id)";
+     ON team_id = team.id)
+     ORDER BY name";
 
     $stmt2 = $conn->query($get_ro_teams);
     $ro_team_names = $stmt2->fetchAll(PDO::FETCH_COLUMN);   
@@ -60,7 +38,8 @@ $issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
 //Get list of events with reading orders
     $get_ro_events = "SELECT DISTINCT name FROM 
     (crossover_event_reading_order INNER JOIN crossover_event
-    ON crossover_event_id = crossover_event.id)";
+    ON crossover_event_id = crossover_event.id)
+    ORDER BY name";
 
     $stmt3 = $conn->query($get_ro_events);
     $ro_event_names = $stmt3->fetchAll(PDO::FETCH_COLUMN);   
@@ -79,6 +58,47 @@ $get_continuities = "SELECT name FROM  continuity";
 $stmt5 = $conn->query($get_continuities);
 $continuity_names = $stmt5->fetchAll(PDO::FETCH_COLUMN); 
 
+//Get list of all issues in the databases
+$get_db_issue_count = "SELECT COUNT(issue.id) FROM issue";
+$stmt14 =  $conn->query($get_db_issue_count);
+$db_issues = $stmt14->fetchAll(PDO::FETCH_COLUMN);
+
+//Intialize variable
+
+$selected_continuity = "";
+$selected_continuity = $_GET['continuity'] ?? '';
+
+//Set Session variables when ro_submit is pressed
+
+if(isset($_POST["ro_submit"])){ 
+    $_SESSION["name_list"] = [];
+    $_SESSION["lname_list"] = [];
+    $_SESSION["team_list"] = [];
+    $_SESSION["event_list"] = [];
+    $_SESSION["continuity_list"] = [];
+    if (!empty($_SESSION["ro_char_selected"])) {
+        foreach($_SESSION["ro_char_selected"] as $ro_char) {
+            $char_name = explode(" ",($ro_char));
+            $name = $char_name[0];
+            $lname = $char_name[1];
+            array_push($_SESSION["name_list"], $name);
+            array_push($_SESSION["lname_list"], $lname);
+                                            }}
+    if (!empty($_SESSION["ro_team_selected"])){
+        foreach($_SESSION["ro_team_selected"] as $ro_team) {
+            array_push($_SESSION["team_list"], $ro_team);
+        }}
+    if (!empty($_SESSION["ro_event_selected"])){
+        foreach($_SESSION["ro_event_selected"] as $ro_event) {
+            array_push($_SESSION["event_list"], $ro_event);
+        }}
+    if (!empty($_SESSION["ro_continuity_selected"])){
+        foreach($_SESSION["ro_continuity_selected"] as $ro_cont) {
+            array_push($_SESSION["continuity_list"], $ro_cont);
+         }}
+         }
+
+
 ///clear session variables when clear button is pressed//
 
 if(isset($_POST["ro_clear"])){ 
@@ -86,7 +106,145 @@ if(isset($_POST["ro_clear"])){
     $_SESSION["ro_event_selected"] = "";
     $_SESSION["ro_team_selected"] = "";
     $_SESSION["ro_char_selected"] = "";
+    $_SESSION["name_list"] = [];
+    $_SESSION["lname_list"] = [];
+    $_SESSION["team_list"] = [];
+    $_SESSION["event_list"] = [];
+    $_SESSION["continuity_list"] = [];
 }
+
+
+///get list of issues
+
+if((empty($_SESSION["name_list"])) && (empty($_SESSION["lname_list"])) && (empty($_SESSION["team_list"])) && (empty($_SESSION["event_list"])) && (empty($_SESSION["continuity_list"]))){
+
+    if(!empty($selected_continuity)){
+        $get_issues = "SELECT DISTINCT issue.id, issue.number,  is_anthology, has_backup, publication_year, publication_date, cover_date, series.title, continuity.name FROM ((((continuity
+        INNER JOIN story ON continuity.id = continuity_id)
+        INNER JOIN has_story ON story.id = story_id)
+        INNER JOIN issue ON issue_id = issue.id)
+        INNER JOIN series ON series_id = series.id)
+        WHERE continuity.name = '$selected_continuity'
+        ORDER BY publication_date";
+
+        $get_ro_issue_count =  "SELECT COUNT(DISTINCT issue.id) as issue_count FROM issue
+        INNER JOIN has_story ON issue_id = issue.id
+        INNER JOIN story ON story_id = story.id
+        INNER JOIN continuity ON continuity_id = continuity.id
+        WHERE continuity.name = '$selected_continuity'" ;
+        
+
+    } else{
+        $get_issues = "SELECT issue.id, issue.number, is_anthology, has_backup, publication_year, publication_date, cover_date, series.title FROM 
+        (issue INNER JOIN series ON series_id = series.id) ORDER BY publication_date";
+
+        $get_ro_issue_count = "SELECT COUNT(issue.id) as issue_count FROM issue";
+    }
+
+   
+}else {
+    $name_string = implode("','", $_SESSION["name_list"]);
+    $lname_string = implode("','", $_SESSION["lname_list"]);
+    $team_string = implode("','", $_SESSION["team_list"]);
+    $event_string = implode("','", $_SESSION["event_list"]);
+    $continuity_string = implode("','", $_SESSION["continuity_list"]);
+
+    if(!empty($selected_continuity)){
+        $get_issues = "SELECT DISTINCT issue.id,issue.number, is_anthology, has_backup, publication_year, YEAR(publication_date) AS issue_year, publication_date, cover_date, series.title FROM 
+        ((((((((((((((continuity 
+            INNER JOIN story ON story.continuity_id = continuity.id)
+            INNER JOIN has_story ON story_id = story.id)
+            INNER JOIN issue ON has_story.issue_id = issue.id)
+            INNER JOIN series ON series_id = series.id)
+            INNER JOIN in_reading_order ON in_reading_order.issue_id = issue.id)
+            INNER JOIN reading_order ON in_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN dc_character_reading_order ON dc_character_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN dc_character ON dc_character_id = dc_character.id)
+            LEFT JOIN team_reading_order ON team_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN team ON team_id = team.id)
+            LEFT JOIN crossover_event_reading_order ON crossover_event_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN crossover_event ON crossover_event_reading_order.crossover_event_id = crossover_event.id)
+            LEFT JOIN continuity_reading_order ON continuity_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN continuity AS ro_conti ON continuity_reading_order.continuity_id = ro_conti.id)
+            WHERE ((dc_character.first_name IN ('$name_string') AND dc_character.last_name IN ('$lname_string'))
+            OR team.name IN ('$team_string')
+            OR crossover_event.name IN ('$event_string')
+            OR ro_conti.name IN ('$continuity_string'))
+            AND continuity.name = '$selected_continuity'
+            ORDER BY issue_year, reading_order.id, position";
+
+        $get_ro_issue_count = "SELECT COUNT(DISTINCT issue.id) FROM 
+        ((((((((((((((continuity 
+            INNER JOIN story ON story.continuity_id = continuity.id)
+            INNER JOIN has_story ON story_id = story.id)
+            INNER JOIN issue ON has_story.issue_id = issue.id)
+            INNER JOIN series ON series_id = series.id)
+            INNER JOIN in_reading_order ON in_reading_order.issue_id = issue.id)
+            INNER JOIN reading_order ON in_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN dc_character_reading_order ON dc_character_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN dc_character ON dc_character_id = dc_character.id)
+            LEFT JOIN team_reading_order ON team_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN team ON team_id = team.id)
+            LEFT JOIN crossover_event_reading_order ON crossover_event_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN crossover_event ON crossover_event_reading_order.crossover_event_id = crossover_event.id)
+            LEFT JOIN continuity_reading_order ON continuity_reading_order.reading_order_id = reading_order.id)
+            LEFT JOIN continuity AS ro_conti ON continuity_reading_order.continuity_id = ro_conti.id)
+            WHERE ((dc_character.first_name In ('$name_string') AND dc_character.last_name in ('$lname_string'))
+            OR team.name IN ('$team_string')
+            OR crossover_event.name IN ('$event_string')
+            OR ro_conti.name IN ('$continuity_string'))
+            AND continuity.name = '$selected_continuity'";
+
+    }else
+    {
+        $get_issues = "SELECT DISTINCT issue.id,issue.number, is_anthology, has_backup, publication_year, YEAR(publication_date) AS issue_year, publication_date, cover_date, series.title FROM 
+    (((((((((((issue 
+        INNER JOIN series ON series_id = series.id)
+        INNER JOIN in_reading_order ON issue_id = issue.id)
+        INNER JOIN reading_order ON in_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN dc_character_reading_order ON dc_character_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN dc_character ON dc_character_id = dc_character.id)
+        LEFT JOIN team_reading_order ON team_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN team ON team_id = team.id)
+        LEFT JOIN crossover_event_reading_order ON crossover_event_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN crossover_event ON crossover_event_id = crossover_event.id)
+        LEFT JOIN continuity_reading_order ON continuity_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN continuity ON continuity_id = continuity.id)
+        WHERE team.name IN ('$team_string')
+        OR crossover_event.name IN ('$event_string')
+        OR continuity.name IN ('$continuity_string')
+        OR (dc_character.first_name in ('$name_string') AND dc_character.last_name IN ('$lname_string'))
+        ORDER BY issue_year, reading_order.id, position";
+
+    $get_ro_issue_count = "SELECT COUNT(DISTINCT issue.id) FROM 
+    (((((((((((issue 
+        INNER JOIN series ON series_id = series.id)
+        INNER JOIN in_reading_order ON issue_id = issue.id)
+        INNER JOIN reading_order ON in_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN dc_character_reading_order ON dc_character_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN dc_character ON dc_character_id = dc_character.id)
+        LEFT JOIN team_reading_order ON team_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN team ON team_id = team.id)
+        LEFT JOIN crossover_event_reading_order ON crossover_event_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN crossover_event ON crossover_event_id = crossover_event.id)
+        LEFT JOIN continuity_reading_order ON continuity_reading_order.reading_order_id = reading_order.id)
+        LEFT JOIN continuity ON continuity_id = continuity.id)
+        WHERE team.name IN ('$team_string')
+        OR crossover_event.name IN ('$event_string')
+        OR continuity.name IN ('$continuity_string')
+        OR (dc_character.first_name in ('$name_string') AND dc_character.last_name IN ('$lname_string'))";
+
+               
+    }
+   
+}
+
+
+$stmt6 = $conn->query($get_issues);
+$issues_info = $stmt6->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt15 = $conn->query($get_ro_issue_count);
+$ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
 
 ?>	
     
@@ -131,13 +289,13 @@ if(isset($_POST["ro_clear"])){
                         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
                             <ul id="tag-dropdown" class="dropdown-menu" style="padding: 5px; background-color: #E6F1FE;">
                             <?php foreach ($ro_character_names as $ro_character): ?>
-                                <li style="margin: 5px; width: 270px; font-size: 17px; font-family: Karma, sans-serif;">
+                                <li style="margin: 5px; width: 305px; font-size: 17px; font-family: Karma, sans-serif;">
                                     <input name = "ro_char_select[]" class = "form-check-input" type= "checkbox" value="<?php echo $ro_character["first_name"]. " ".$ro_character["last_name"]?>"/>
                                     <label class="form-check-label"><?php echo $ro_character["first_name"], " ",$ro_character["last_name"]?></label>
                                 </li>
                             <?php endforeach; ?>
                                 <br>
-                                <input type="submit" name = "ro_char_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 200px; font-family: Roboto, sans-serif;">
+                                <input type="submit" name = "ro_char_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                             </ul>
                         </form> 
                     </div>  
@@ -152,13 +310,13 @@ if(isset($_POST["ro_clear"])){
                             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
                                 <ul id="tag-dropdown" class="dropdown-menu" style="padding: 5px; background-color: #E6F1FE;">
                                 <?php foreach ($ro_team_names as $ro_team): ?>
-                                    <li style="margin: 5px; width: 270px; font-size: 17px; font-family: Karma, sans-serif;">
+                                    <li style="margin: 5px; width: 305px; font-size: 17px; font-family: Karma, sans-serif;">
                                         <input name = "ro_team_select[]" class = "form-check-input" type= "checkbox" value="<?php echo $ro_team?>"/>
                                         <label class="form-check-label"><?php echo $ro_team?></label>
                                     </li>
                                 <?php endforeach; ?>
                                     <br>
-                                    <input type="submit" name = "ro_team_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 200px; font-family: Roboto, sans-serif;">
+                                    <input type="submit" name = "ro_team_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                                 </ul>
                             </form> 
                     </div> 
@@ -173,13 +331,13 @@ if(isset($_POST["ro_clear"])){
                             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
                                 <ul id="tag-dropdown" class="dropdown-menu" style="padding: 5px; background-color: #E6F1FE;">
                                 <?php foreach ($ro_event_names as $ro_event): ?>
-                                    <li style="margin: 5px; width: 270px; font-size: 17px; font-family: Karma, sans-serif;">
+                                    <li style="margin: 5px; width: 305px; font-size: 17px; font-family: Karma, sans-serif;">
                                         <input name = "ro_event_select[]" class = "form-check-input" type= "checkbox" value="<?php echo $ro_event?>"/>
                                         <label class="form-check-label"><?php echo $ro_event?></label>
                                     </li>
                                 <?php endforeach; ?>
                                     <br>
-                                    <input type="submit" name = "ro_event_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 200px; font-family: Roboto, sans-serif;">
+                                    <input type="submit" name = "ro_event_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                                 </ul>
                             </form> 
                     </div> 
@@ -194,13 +352,13 @@ if(isset($_POST["ro_clear"])){
                             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
                                 <ul id="tag-dropdown" class="dropdown-menu" style="padding: 5px; background-color: #E6F1FE;">
                                 <?php foreach ($ro_continuity_names as $ro_continuity): ?>
-                                    <li style="margin: 5px; width: 270px; font-size: 17px; font-family: Karma, sans-serif;">
+                                    <li style="margin: 5px; width: 305px; font-size: 17px; font-family: Karma, sans-serif;">
                                         <input name = "ro_continuity_select[]" class = "form-check-input" type= "checkbox" value="<?php echo $ro_continuity?>"/>
                                         <label class="form-check-label"><?php echo $ro_continuity?></label>
                                     </li>
                                 <?php endforeach; ?>
                                     <br>
-                                    <input type="submit" name = "ro_continuity_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 200px; font-family: Roboto, sans-serif;">
+                                    <input type="submit" name = "ro_continuity_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                                 </ul>
                             </form> 
                     </div> 
@@ -221,7 +379,7 @@ if(isset($_POST["ro_clear"])){
                                 <?php 
                                         if(isset($_POST["ro_char_submit"])){
                                             if(!empty($_POST["ro_char_select"])){
-                                                $_SESSION["ro_char_selected"] = (($_POST["ro_char_select"]));
+                                                $_SESSION["ro_char_selected"] = $_POST["ro_char_select"];
                                                 }
                                         }
 
@@ -241,9 +399,11 @@ if(isset($_POST["ro_clear"])){
                             <p style= "font-family: Roboto, sans-serif;">Team Reading Orders Selected:</p>
                             <div class= "container-fluid" style="margin:10px;">
                                 <?php 
+                                
                                         if(isset($_POST["ro_team_submit"])){
                                             if(!empty($_POST["ro_team_select"])){
-                                                $_SESSION["ro_team_selected"] = (($_POST["ro_team_select"]));
+                                                $_SESSION["ro_team_selected"] = $_POST["ro_team_select"];
+                                                
                                                 }
                                             }    
 
@@ -251,7 +411,7 @@ if(isset($_POST["ro_clear"])){
                                             foreach($_SESSION["ro_team_selected"] as $ro_team_selected){
                                                 echo $ro_team_selected. "<br>"; }
                                             }    
-                                ?>
+                                            ?>     
                             </div>
                         </div>
                     </div>
@@ -265,7 +425,7 @@ if(isset($_POST["ro_clear"])){
                                 <?php 
                                         if(isset($_POST["ro_event_submit"])){
                                             if(!empty($_POST["ro_event_select"])){
-                                                $_SESSION["ro_event_selected"] = (($_POST["ro_event_select"]));
+                                                $_SESSION["ro_event_selected"] = $_POST["ro_event_select"];
                                                 }
                                             }    
 
@@ -286,7 +446,7 @@ if(isset($_POST["ro_clear"])){
                                 <?php 
                                         if(isset($_POST["ro_continuity_submit"])){
                                             if(!empty($_POST["ro_continuity_select"])){
-                                                $_SESSION["ro_continuity_selected"] = (($_POST["ro_continuity_select"]));
+                                                $_SESSION["ro_continuity_selected"] = $_POST["ro_continuity_select"];
                                                 }
                                             }  
 
@@ -309,10 +469,8 @@ if(isset($_POST["ro_clear"])){
                             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
                                 <div class = "container-fluid" style="display:flex;">
                                     <input type="submit" name = "ro_clear" value="Clear" class = "btn btn-secondary" style="  width: 150px; margin: 0 0 0 100px; font-family: Roboto, sans-serif;">
-                                    <input type="submit" name = "ro_submit" value="Submit" class = "btn btn-secondary" style=" width: 100px; margin: 0 0 0 50px; font-family: Roboto, sans-serif;">
-                                    <?php 
-                                        
-                                    ?>
+                                    <input type="submit" name = "ro_submit" value="Submit" class = "btn btn-secondary" style=" width: 100px; margin: 0 0 0 50px; font-family: Roboto, sans-serif;"> 
+
                                 </div>
                             </form>
                         </div>
@@ -322,7 +480,12 @@ if(isset($_POST["ro_clear"])){
         <!-- READING ORDER SELECTOR END-->
         <br>
            <!-- ISSUES COUNT RESULT DISPLAY START-->                           
-            <div class = "row"></div>
+            <div class = "row">
+                <div class = "col-2"></div>
+                <div class ="col-3">
+                    <h5><u>Showing <?php echo $ro_issues[0]?> out of <?php echo $db_issues[0];?> Issues </u></h5>
+                </div>
+            </div>
         <!-- ISSUES COUNT RESULT DISPLAY END-->
           <!-- ISSUES DISPLAY START-->
           <!-- ISSUES DISPLAY HEADER START-->
@@ -331,7 +494,7 @@ if(isset($_POST["ro_clear"])){
                 <div class = "col-2">
                     <div class = "row" style = "text-align: center; font-family: Roboto, sans-serif; font-size: 14px;"><h3><b>About</b></h3></div>
                     <div class = "row" style = "margin-left: 10px; text-align: left; font-family: Karma, sans-serif; font-size: 12px;">
-                        <p>This databse pulls issues from several reading orders and compiles them into a single list.
+                        <p>This database pulls issues from several reading orders and compiles them into a single list.
                         To use it, simply select the reading orders you are interested in form the menu above and hit submit.
                         Character, team, and event reading orders compile the recommended reading for that specific character, team or event. 
                         Continuity reading orders compile the best and most essential comics from each era of DC across the enitre DC Universe.
@@ -346,18 +509,18 @@ if(isset($_POST["ro_clear"])){
                         <ul class="nav nav-tabs">
                             <li class="nav-item">
                             <?php if ($selected_continuity==""): ?>
-                                <a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 173px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;">All</a>
+                                <a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 215px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><b>All</b></a>
                             <?php else: ?>
-                                <a class="nav-link" href="?" style= "justify-content: center; height: 65px; width: 173px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;">All</a>
+                                <a class="nav-link" href="?" style= "justify-content: center; height: 65px; width: 215px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;">All</a>
                             <?php endif; ?>
                             </li>
                             <?php foreach ($continuity_names as $continuity): ?>
                             <!-- Changing the color of the tag if it is active, and making it lead back to the unflitered gallery if clicked again -->
                             <?php if ($continuity == $selected_continuity): ?>
-                                <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 180px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><?php echo $continuity?></a></li>
+                                <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 198px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><b><?php echo $continuity?></b></a></li>
                             <!-- if tag is not selected then  clicking the tag just applies the filter to the gallery by adding the tag to the url -->
                             <?php else: ?>
-                                <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 180px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
+                                <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 198px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
                             <?php endif; ?>
                         <?php endforeach; ?>
                         </ul>
@@ -366,8 +529,8 @@ if(isset($_POST["ro_clear"])){
                 <!-- ISSUES DISPLAY TABLE START-->
                 <div class = "container-fluid" >
                 <table class="table table-hover" style="overflow: auto; border-left: 1px solid black; border-right: 1px solid black;">
-                        <thead style = "border: 1px solid black;">
-                            <tr style= "background-color: #E6F1FE">
+                        <thead style = " background-color: #4CA1FC; border: 1px solid black;">
+                            <tr>
                             <th scope="col">  </th>
                             <th scope="col">Series</th>
                             <th scope="col"> Issue </th>
@@ -376,7 +539,6 @@ if(isset($_POST["ro_clear"])){
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
                         <?php 
                         $i = 0; 
 
@@ -404,6 +566,7 @@ if(isset($_POST["ro_clear"])){
                             
             
                                 ?>
+                            <tr style = "background-color: #E6F1FE">
                             <th style = "font-family: Karma, sans-serif;"scope="row"><?php echo $i;?></th>
                             <td style = "font-family: Karma, sans-serif;"><b><?php echo $issue_info["title"]. " (" .$issue_info["publication_year"]. ")";?></b></td>
                             <td style = "font-family: Karma, sans-serif;"><b><?php echo " # " .$issue_info["number"];?></b></td>
@@ -586,18 +749,18 @@ if(isset($_POST["ro_clear"])){
                                         </div>
                                     </div>
                                 </div>
-                                  
                             </div>
                             </td>
                             </tr>
                         <?php endforeach; ?>
-                        <tfoot style= "border: 1px solid black; background-color: #E6F1FE;">
+                        <tfoot style= "border: 1px solid black; background-color: #4CA1FC;">
                             <td colspan="5" style= "border: 1px solid black;"></td>
                         </tfoot>
                         </tbody>
                     </table>
                 <!-- ISSUES DISPLAY TABLE END-->
             </div>
+           
         </div>
         <nav id="header" class= "navbar" style = "background-color:#0476F2;"></nav>
          <!-- MAIN BODY END-->                               
