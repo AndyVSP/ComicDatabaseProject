@@ -295,7 +295,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                                 </li>
                             <?php endforeach; ?>
                                 <br>
-                                <input type="submit" name = "ro_char_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
+                                <input type="submit" name = "ro_char_submit" value="Select" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                             </ul>
                         </form> 
                     </div>  
@@ -316,7 +316,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                                     </li>
                                 <?php endforeach; ?>
                                     <br>
-                                    <input type="submit" name = "ro_team_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
+                                    <input type="submit" name = "ro_team_submit" value="Select" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                                 </ul>
                             </form> 
                     </div> 
@@ -337,7 +337,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                                     </li>
                                 <?php endforeach; ?>
                                     <br>
-                                    <input type="submit" name = "ro_event_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
+                                    <input type="submit" name = "ro_event_submit" value="Select" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                                 </ul>
                             </form> 
                     </div> 
@@ -358,7 +358,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                                     </li>
                                 <?php endforeach; ?>
                                     <br>
-                                    <input type="submit" name = "ro_continuity_submit" value="Submit" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
+                                    <input type="submit" name = "ro_continuity_submit" value="Select" class = "btn btn-secondary" style="margin: 0 0 0 220px; font-family: Roboto, sans-serif;">
                                 </ul>
                             </form> 
                     </div> 
