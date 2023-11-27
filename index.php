@@ -265,7 +265,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
     </head>
     <body>
         <!-- HEADER START-->
-    <div class ="container-fluid">
+ 
         <nav id="header" class= "navbar" style = "background-color:#0476F2;">
             <div id = "logo" class = "container-fluid" style="width: 40%; margin-left: 0;">
                 <h1 style= "font-family: Sigmar One, sans-serif; color: #FFFFFF;">DC Reading Order Database</h1>
@@ -765,7 +765,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
         </div>
         <nav id="header" class= "navbar fixed-bottom" style = "background-color:#0476F2;"></nav>
          <!-- MAIN BODY END--> 
-    </div>                              
+                              
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
     </body>
 </html>
