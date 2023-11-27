@@ -265,6 +265,7 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
     </head>
     <body>
         <!-- HEADER START-->
+    <div class ="container-fluid">
         <nav id="header" class= "navbar" style = "background-color:#0476F2;">
             <div id = "logo" class = "container-fluid" style="width: 40%; margin-left: 0;">
                 <h1 style= "font-family: Sigmar One, sans-serif; color: #FFFFFF;">DC Reading Order Database</h1>
@@ -495,11 +496,11 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                     <div class = "row" style = "text-align: center; font-family: Roboto, sans-serif; font-size: 14px;"><h3><b>About</b></h3></div>
                     <div class = "row" style = "margin-left: 10px; text-align: left; font-family: Karma, sans-serif; font-size: 12px;">
                         <p>This database pulls issues from several reading orders and compiles them into a single list.
-                        To use it, simply select the reading orders you are interested in form the menu above and hit submit.
+                        To use it, simply select the reading orders you are interested in from the menu above and hit submit.
                         Character, team, and event reading orders compile the recommended reading for that specific character, team or event. 
                         Continuity reading orders compile the best and most essential comics from each era of DC across the enitre DC Universe.
                         You can then use the tabs at the top of the table to only view issues that have stories that take place in a particular continuity.
-                        You can start reading from any continuity section. They are ordered chronologially, so if you only want to cath up with the newest comics start from comics under Infinite Frontier and Beyond.
+                        You can start reading from any continuity section. They are ordered chronologically, so if you only want to cath up with the newest comics start from comics under Infinite Frontier and Beyond.
                         For a more complete reading experience start at Pre-Crisis. 
                         </p>
                     </div>
@@ -762,8 +763,9 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
             </div>
            
         </div>
-        <nav id="header" class= "navbar" style = "background-color:#0476F2;"></nav>
-         <!-- MAIN BODY END-->                               
+        <nav id="header" class= "navbar fixed-bottom" style = "background-color:#0476F2;"></nav>
+         <!-- MAIN BODY END--> 
+    </div>                              
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
     </body>
 </html>

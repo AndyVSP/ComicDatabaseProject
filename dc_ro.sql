@@ -1,3 +1,7 @@
+/* while the code runs fine in phpmyadmin, On workbench there might be some issues with zero values in dates so I changed the sql mode to fix this*/
+
+SET sql_mode = "ALLOW_INVALID_DATES";
+
 /* Create database */
 CREATE DATABASE dc_ro;
 
@@ -332,9 +336,9 @@ INSERT INTO Crossover_Event(name, description)
 VALUES
     ("Crisis on Infinite Earths", 
     "Crisis on Infinite Earths in 1985 was company wide crossover event. This was a multiversal catastrophe which destroyed multiple parallel universes and recreated the main universe."),
-    ("Flashpoint", ""),
-    ("Dark Nights: Death Metal", ""),
-    ("Dark Crisis", "");
+    ("Flashpoint", NULL),
+    ("Dark Nights: Death Metal", NULL),
+    ("Dark Crisis", NULL);
 
 
 /*STORY TABLE DATA */
@@ -343,28 +347,28 @@ INSERT INTO Story(title, CONTINUITY_id, CROSSOVER_EVENT_id)
 VALUES
     ("The Case of the Chemical Syndicate",
     (SELECT id FROM Continuity WHERE name = "Pre-Crisis"),
-    ""),
+    NULL),
     ("The Killers of Kurdistan",
     (SELECT id FROM Continuity WHERE name = "Pre-Crisis"),
-    ""),
+    NULL),
     ("Murder on the Oceanic Line Docks",
     (SELECT id FROM Continuity WHERE name = "Pre-Crisis"),
-    ""),
+    NULL),
     ("The Murderer on Vacation",
     (SELECT id FROM Continuity WHERE name = "Pre-Crisis"),
-    ""),
+    NULL),
     ("The Night Before",
     (SELECT id FROM Continuity WHERE name = "Post-Crisis"), 
-    ""),
+    NULL),
     ("Batman Eternal #3", 
     (SELECT id FROM Continuity WHERE name = "New 52"),
-    ""),
+    NULL),
     ("Seven Crises, Part 1",
     (SELECT id FROM Continuity WHERE name = "Rebirth"),
-    ""),
+    NULL),
     ("Chapter 1: City of Tomorrow",
     (SELECT id FROM Continuity WHERE name = "Infinite Frontier and Beyond"),
-    "");
+    NULL);
 
 /*HAS_STORY TABLE DATA */
 INSERT INTO Has_Story
@@ -627,7 +631,7 @@ VALUES
     "Batman was a vigilante and the superhero protector of Gotham City, a man dressed like a bat who fights against evil and strikes terror into the hearts of criminals everywhere. In his secret identity, he was Bruce Wayne, a billionaire industrialist and notorious playboy."),
     ("Dick", "Grayson", 
     "Dick Grayson was the adopted son of Bruce Wayne, the first Robin, Nightwing, and a featured member of the Batfamily."),
-    ("Koriand'r", "",
+    ("Koriand'r", NULL,
     "Starfire, former royalty of Tamaran, was a recurring member of the Teen Titans."),
     ("Joey", "Wilson", 
     "Joseph Wilson was the son of Slade Wilson, from whom he inherited the metahuman gene, and Adeline Kane. He became mute in childhood, when one of his father's enemies cut his throat."),
@@ -660,11 +664,11 @@ VALUES
     ("Batman", "Costumed as a bat he preys on the fears of criminals, and utilizing a high-tech arsenal"),
     ("Robin", "The patron saint of superhero sidekicks, several young people have taken on the role of Robin, Batman's partner in the battle against crime"),
     ("Nightwing", "Protector of Bludhaven"),
-    ("Starfire", ""),
-    ("Jericho", ""),
-    ("Superboy", ""),
-    ("Steel", ""),
-    ("Spoiler", "");
+    ("Starfire", NULL),
+    ("Jericho", NULL),
+    ("Superboy", NULL),
+    ("Steel", NULL),
+    ("Spoiler", NULL);
 
 /*HAS_MANTLE TABLE DATA */
 
@@ -906,7 +910,7 @@ VALUES
         WHERE DC_Character.first_name = "Bruce"
         AND DC_Character.last_name = "Wayne"
         AND Mantle.name = "Batman"),
-        ""
+        NULL
     ),
     (
         (SELECT id FROM Story WHERE title = "The Night Before"),
@@ -963,12 +967,12 @@ VALUES
         WHERE DC_Character.first_name = "Bruce"
         AND DC_Character.last_name = "Wayne"
         AND Mantle.name = "Batman"),
-        ""
+        NULL
     ),
     (
         (SELECT id FROM Story WHERE title = "Batman Eternal #3"),
         (SELECT id FROM DC_Character WHERE first_name = "Stephanie" AND last_name = "Brown"),
-        "", ""
+        NULL, NULL
     ),
     (
         (SELECT id FROM Story WHERE title = "Seven Crises, Part 1"),
@@ -1051,17 +1055,17 @@ INNER JOIN Tag ON TAG_id = Tag.id)
 WHERE DC_Character.first_name = "Bruce" 
 AND DC_Character.last_name = "Wayne"
 AND Tag.name = "First Appearance"),
-"", 
-"", 
-""),
+NULL, 
+NULL, 
+NULL),
 (
     (SELECT Issue.id FROM (Issue
 INNER JOIN Series ON SERIES_id = Series.id)
 WHERE Series.title = "The New Teen Titans"
 AND Issue.number = "16"),
 (SELECT id FROM Tag WHERE name = "Relationship Event"), 
-"",
-"",
+NULL,
+NULL,
  (SELECT Relationship_Tag.id FROM (Relationship_Tag
 INNER JOIN Relationship ON RELATIONSHIP_id = Relationship.id)
 WHERE DC_CHARACTER_id_1 = (SELECT DISTINCT dc_character.id FROM (Relationship
@@ -1087,7 +1091,7 @@ INNER JOIN Tag ON TAG_id = Tag.id)
 WHERE DC_Character.first_name = "Stephanie" 
 AND DC_Character.last_name = "Brown"
 AND Tag.name = "Reintroduction"),
-"", "", ""),
+NULL, NULL, NULL),
 
 (
     (SELECT Issue.id FROM (Issue
@@ -1101,7 +1105,7 @@ INNER JOIN Tag ON TAG_id = Tag.id)
 WHERE DC_Character.first_name = "Kon" 
 AND DC_Character.last_name = "El"
 AND Tag.name = "Reintroduction"),
-"", "", ""),
+NULL, NULL, NULL),
 
 (
     (SELECT Issue.id FROM (Issue
@@ -1109,13 +1113,13 @@ INNER JOIN Series ON SERIES_id = Series.id)
 WHERE Series.title = "Young Justice"
 AND Issue.number = "1"), 
 (SELECT id FROM Tag WHERE name = "Team Event"),
-"",
+NULL,
 (SELECT Team_Tag.id FROM ((Team_Tag
 INNER JOIN Tag ON Tag_id = Tag.id)
 INNER JOIN Team ON TEAM_id = Team.id)
 WHERE Tag.name = "Team Event"
 AND Team.name = "Young Justice"),
-"", "The Team reforms with a new line up"),
+NULL, "The Team reforms with a new line up"),
 
 (
     (SELECT Issue.id FROM (Issue
@@ -1123,8 +1127,8 @@ INNER JOIN Series ON SERIES_id = Series.id)
 WHERE Series.title = "Young Justice"
 AND Issue.number = "1"),
 (SELECT id FROM Tag WHERE name = "Relationship Event"), 
-"",
-"",
+NULL,
+NULL,
  (SELECT Relationship_Tag.id FROM (Relationship_Tag
 INNER JOIN Relationship ON RELATIONSHIP_id = Relationship.id)
 WHERE DC_CHARACTER_id_1 = (SELECT DISTINCT dc_character.id FROM (Relationship
