@@ -114,7 +114,7 @@ if(isset($_POST["ro_clear"])){
 }
 
 
-///get list of issues
+///get list of issues and issue display count
 
 if((empty($_SESSION["name_list"])) && (empty($_SESSION["lname_list"])) && (empty($_SESSION["team_list"])) && (empty($_SESSION["event_list"])) && (empty($_SESSION["continuity_list"]))){
 
@@ -516,10 +516,8 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                             <?php endif; ?>
                             </li>
                             <?php foreach ($continuity_names as $continuity): ?>
-                            <!-- Changing the color of the tag if it is active, and making it lead back to the unflitered gallery if clicked again -->
                             <?php if ($continuity == $selected_continuity): ?>
                                 <li><a class="nav-link active" aria-current="page" href="?" style= "height: 65px; width: 198px; color: white; font-family: Roboto, sans-serif; background-color: #0476F2; border: solid 1px black;"><b><?php echo $continuity?></b></a></li>
-                            <!-- if tag is not selected then  clicking the tag just applies the filter to the gallery by adding the tag to the url -->
                             <?php else: ?>
                                 <li><a  class="nav-link" href="?continuity=<?php echo urlencode($continuity) ?>" style= "height: 65px; width: 198px; font-family: Roboto, sans-serif; color: black; background-color: #4CA1FC; border: solid 1px black;"><?php echo $continuity?></a></li>
                             <?php endif; ?>
@@ -761,11 +759,11 @@ $ro_issues = $stmt15->fetchAll(PDO::FETCH_COLUMN);
                     </table>
                 <!-- ISSUES DISPLAY TABLE END-->
             </div>
-           
         </div>
+        <!-- MAIN BODY END--> 
+        <!-- FOOTER START--> 
         <nav id="header" class= "navbar static-bottom" style = "background-color:#0476F2;"></nav>
-         <!-- MAIN BODY END--> 
-                              
+          <!-- FOOTER END-->          
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
     </body>
 </html>
