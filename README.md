@@ -1,2 +1,2 @@
-# INFS_657_DatabseProject
-Comics database built for final assignment in INFS_657
+# DatabseProject
+Comics database built for the final assignment in a Database Class.
